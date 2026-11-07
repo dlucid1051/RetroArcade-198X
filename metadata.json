@@ -1,0 +1,6 @@
+{
+  "name": "RetroArcade 198X - 80s Arcade PWA",
+  "description": "An authentic 80s arcade collection featuring Asteroids, Battlezone, Missile Command, Space Invaders, Pac-Man, Donkey Kong, and Centipede, complete with CRT effects, synthesized procedural audio, and offline PWA support.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

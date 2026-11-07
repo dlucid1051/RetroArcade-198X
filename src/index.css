@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+@layer utilities {
+  .font-arcade {
+    font-family: 'Press Start 2P', monospace;
+  }
+  .font-crt {
+    font-family: 'VT323', monospace;
+  }
+  .font-display {
+    font-family: 'Orbitron', sans-serif;
+  }
+}
+
+/* CRT monitor scanlines & curvature effect */
+.crt-overlay::before {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.35) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+  z-index: 20;
+  background-size: 100% 3px, 6px 100%;
+  pointer-events: none;
+}
+
+.crt-vignette {
+  box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.85), inset 0 0 20px rgba(0, 0, 0, 0.95);
+}
+
+.crt-glow {
+  text-shadow: 0 0 8px currentColor, 0 0 20px currentColor;
+}
+
+.vector-glow {
+  filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.85)) drop-shadow(0 0 14px rgba(56, 189, 248, 0.45));
+}
+
+.vector-glow-amber {
+  filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.85)) drop-shadow(0 0 14px rgba(245, 158, 11, 0.45));
+}
+
+.vector-glow-green {
+  filter: drop-shadow(0 0 6px rgba(34, 197, 94, 0.85)) drop-shadow(0 0 14px rgba(34, 197, 94, 0.45));
+}
+
+.vector-glow-pink {
+  filter: drop-shadow(0 0 6px rgba(236, 72, 153, 0.85)) drop-shadow(0 0 14px rgba(236, 72, 153, 0.45));
+}
+
+/* Arcade cabinet bezel border shine */
+.arcade-bezel {
+  box-shadow: 
+    0 0 0 3px #181c24,
+    0 0 0 8px #0f1217,
+    0 0 25px rgba(0, 0, 0, 0.9),
+    inset 0 0 15px rgba(0, 0, 0, 0.8);
+}
+
+/* Prevent accidental browser gesture refresh or zoom during intense gaming */
+html, body {
+  overscroll-behavior-y: none;
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
