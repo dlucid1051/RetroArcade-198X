@@ -311,6 +311,41 @@ export const BattlezoneGame: React.FC<BattlezoneGameProps> = ({
     retroAudio.extraLife();
   }, [credits, onUseCredit]);
 
+  // Fire Player Cannon
+  const fireCannon = useCallback(() => {
+    const state = engine.current;
+    if (state.status !== 'playing' || isPausedRef.current) return;
+
+    if (state.cannonCooldown <= 0) {
+      const activeShells = state.projectiles.filter(p => !p.isEnemy);
+      // Allow firing if no active player shell, or if previous shell has already traveled a bit
+      if (activeShells.length === 0 || activeShells[0].life < 0.6) {
+        state.cannonCooldown = 0.75;
+        const shellSpeed = 180;
+        state.projectiles.push({
+          x: state.playerX + Math.sin(state.playerAngle) * 5,
+          y: 0,
+          z: state.playerZ + Math.cos(state.playerAngle) * 5,
+          vx: Math.sin(state.playerAngle) * shellSpeed,
+          vy: 0,
+          vz: Math.cos(state.playerAngle) * shellSpeed,
+          life: 1.8,
+          isEnemy: false,
+        });
+        retroAudio.battlezoneCannon();
+
+        if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+          try { navigator.vibrate(25); } catch {}
+        }
+      }
+    }
+  }, []);
+
+  const fireCannonRef = useRef(fireCannon);
+  useEffect(() => {
+    fireCannonRef.current = fireCannon;
+  }, [fireCannon]);
+
   // Player destruction
   const killPlayer = () => {
     retroAudio.explosion('large');
@@ -381,13 +416,18 @@ export const BattlezoneGame: React.FC<BattlezoneGameProps> = ({
     retroAudio.buttonClick();
   };
 
-  // Key controls for initials screen & space/enter to start
+  // Key controls for initials screen & space/enter to start or fire
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (gameState === 'attract') {
         if (e.code === 'Space' || e.code === 'Enter') {
           e.preventDefault();
           startGame();
+        }
+      } else if (gameState === 'playing') {
+        if (e.code === 'Space' || e.code === 'Enter' || e.code === 'KeyF') {
+          e.preventDefault();
+          fireCannon();
         }
       } else if (gameState === 'new_high_score') {
         const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!.-';
@@ -429,7 +469,7 @@ export const BattlezoneGame: React.FC<BattlezoneGameProps> = ({
 
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [gameState, initialIndex, initials, score, kills, highScores, startGame]);
+  }, [gameState, initialIndex, initials, score, kills, highScores, startGame, fireCannon]);
 
   // Main 3D Vector Engine Render Loop
   useEffect(() => {
@@ -660,22 +700,7 @@ export const BattlezoneGame: React.FC<BattlezoneGameProps> = ({
         // Player Cannon Firing
         state.cannonCooldown -= dt;
         if (controls.fire && state.cannonCooldown <= 0) {
-          // Check active player shells (max 1 shell at a time, authentic Battlezone rule)
-          if (state.projectiles.filter(p => !p.isEnemy).length === 0) {
-            state.cannonCooldown = 1.3;
-            const shellSpeed = 160;
-            state.projectiles.push({
-              x: state.playerX + Math.sin(state.playerAngle) * 5,
-              y: 0,
-              z: state.playerZ + Math.cos(state.playerAngle) * 5,
-              vx: Math.sin(state.playerAngle) * shellSpeed,
-              vy: 0,
-              vz: Math.cos(state.playerAngle) * shellSpeed,
-              life: 2.2,
-              isEnemy: false,
-            });
-            retroAudio.battlezoneCannon();
-          }
+          fireCannonRef.current();
         }
       }
 
@@ -1198,7 +1223,11 @@ export const BattlezoneGame: React.FC<BattlezoneGameProps> = ({
           <canvas
             ref={canvasRef}
             onClick={() => {
-              if (gameState === 'attract') startGame();
+              if (gameState === 'attract') {
+                startGame();
+              } else if (gameState === 'playing') {
+                fireCannon();
+              }
             }}
             className="w-full h-full block bg-[#030805] cursor-crosshair"
           />
@@ -1462,8 +1491,20 @@ export const BattlezoneGame: React.FC<BattlezoneGameProps> = ({
 
         <div className="flex items-center gap-2 sm:gap-3">
           <button
-            onPointerDown={() => handleTouchDown('fire')}
-            onPointerUp={() => handleTouchUp('fire')}
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              fireCannon();
+            }}
+            onPointerDown={(e) => {
+              e.preventDefault();
+              fireCannon();
+              handleTouchDown('fire');
+            }}
+            onPointerUp={(e) => {
+              e.preventDefault();
+              handleTouchUp('fire');
+            }}
             onPointerLeave={() => handleTouchUp('fire')}
             className="w-20 h-12 sm:w-24 sm:h-14 rounded-lg bg-gradient-to-b from-emerald-600 to-green-700 border-2 border-emerald-400 active:from-emerald-400 active:to-green-500 text-white font-arcade text-xs font-bold tracking-wider flex items-center justify-center transition-all select-none shadow-[0_0_15px_rgba(16,185,129,0.7)] cursor-pointer"
             aria-label="Fire 120mm Tank Cannon"
